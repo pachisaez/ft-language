@@ -4,26 +4,35 @@ module Token
 	class Base
 		include Comparable
 
-		attr_accessor :type, :value
+		attr_accessor :type, :lexeme
 
 		ERROR = -3
 		EXCEPTION = -2
 		EOS = -1
-		CHUNK = 0
-		SPACE = 1
-		NEW_LINE = 2
-		TAG = 3
-		ENTITY = 4
-		COMMAND = 5
-		EMAIL = 6
-		URL = 7
-		FOCUS = 8
+		WORD = 0
+		NUMBER = 1
+		PUNCTUATION = 2
+		SPACE = 3
+		NEW_LINE = 4
 
-		TOKEN_NAMES = [ 'ERROR', 'EXCEPTION', 'EOS', 'CHUNK', 'SPACE', 'NEW_LINE', 'TAG', 
-			'ENTITY', 'COMMAND', 'EMAIL', 'URL', 'FOCUS']
+		CHUNK = 5
+		TAG = 6
+		ENTITY = 7
+		COMMAND = 8
+		EMAIL = 9
+		URL = 10
+		FOCUS = 11
 
-		def initialize type, value
-			@type, @value = type, value
+		TOKEN_NAMES = [ 'ERROR', 'EXCEPTION', 'EOS', 'WORD', 'NUMBER', 'PUNCTUATION',
+			'SPACE', 'NEW_LINE', 
+			'CHUNK', 'TAG', 'ENTITY', 'COMMAND', 'EMAIL', 'URL', 'FOCUS']
+
+		def initialize type, lexeme
+			@type, @lexeme = type, lexeme
+		end
+
+		def value
+			@lexeme.to_s
 		end
 
 		def <=> other
@@ -39,7 +48,7 @@ module Token
 	  end
 
 		def to_s
-			"[#{TOKEN_NAMES[@type+3]}: #{@value}]"
+			"[#{TOKEN_NAMES[@type+3]}: \"#{@lexeme}\" #{value}]"
 		end
 
 		def printed

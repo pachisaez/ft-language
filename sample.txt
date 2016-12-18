@@ -1,5 +1,6 @@
 this is an #example for @John, a good-example
 with two lines!!, #super-long_tag
-:day tomorrow :airplane ha!
+:day 20, 15:30 :airplane ha!
 francisco.saez@gmail.com, what?
 go to https://facilethings.com.
+Run 5.25km 7.

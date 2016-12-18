@@ -27,7 +27,7 @@ puts t.to_s
 r = []
 100000.times do
 	t0 = Time.now
-	scanner = Scanner.new input
+	scanner = Grammar.new input
 	t = scanner.nextToken
 	while t.type!=Token::EOS do
 		t = scanner.nextToken

@@ -7,8 +7,12 @@ module Token
 			super Token::Base::TAG, tag
 		end
 
+		def value
+			@lexeme[1..-1]
+		end
+
 		def printed
-			value.colorize :green
+			@lexeme.colorize :green
 		end
 
 		def process

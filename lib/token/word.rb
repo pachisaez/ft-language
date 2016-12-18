@@ -1,10 +1,10 @@
 require 'colorize'
 
 module Token
-	class Chunk < Token::Base
+	class Word < Token::Base
 
-		def initialize chunk
-			super Token::Base::CHUNK, chunk
+		def initialize word
+			super Token::Base::WORD, word
 		end
 
 		def printed

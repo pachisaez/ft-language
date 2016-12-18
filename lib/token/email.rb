@@ -8,7 +8,7 @@ module Token
 		end
 
 		def printed
-			value.colorize :yellow
+			@lexeme.colorize :light_blue
 		end
 
 	end

@@ -1,42 +1,62 @@
+require 'strscan'
 require_relative 'token'
 
 class Scanner
 	attr_reader :input
 
-	EMAIL = /\A[\w+\-.]+@[a-z\d\-]+(\.[a-z]+)*\.[a-z]+\z/i
-	URL = /https?:\/\/[\S]+/
+	SPACE 				= /[ \t]+/
+	NEW_LINE 			= /[\n\r]+/
+
+	CHARACTER			= /[[:alnum:]_\-]/
+	WORD					= /[[:alnum:]_\-]+/
+	EMAIL 				= /[\w+\-.]+@[a-z\d\-]+(\.[a-z]+)*\.[a-z]+/i
+	URL 					= /https?:\/\/[a-z\d\-\.]+\.[a-z]+/i
+
+	DIGIT 				= /[[:digit:]\-\+]/
+	NUMBER 				= /[\-\+]?[[:digit:]]+(\.?[[:digit:]]+)?/
+
+	TAG 					= /#[[:alnum:]_\-]+/
+	ENTITY				= /@[[:alnum:]_\-]+/
+	COMMAND 			= /:day|:start|:expected|:time|:energy|:urgent/i
+	FOCUS 				= /!!/
+
+	PUNCTUATION 	= /[[:punct:]]/
 
 	def initialize input=''
-		@input = StringIO.new input
-		consume
+		@input = StringScanner.new input
 	end
 
 	def nextToken
-		if isNil?
-			eos
-		elsif isSpace?
-			space
-		elsif isNewLine?
-			newLine
-		elsif isTag?
-			tag
-		elsif isEntity?
-			entity
-		elsif isCommand?
-			command
-		elsif isWord?
-			chunk
-		elsif isFocus?
-			focus
-		else
-			exception
+		while !@input.eos?
+			lookahead = @input.peek(1)
+			case lookahead
+				when SPACE
+			    return space
+			  when NEW_LINE
+			  	return newLine
+			  when DIGIT
+			  	return number
+			  when CHARACTER
+			  	return word
+			  when "#"
+			  	return tag
+			  when "@"
+			  	return entity
+			  when ":"
+			  	return command
+			  when "!"
+			  	return focus
+			  when PUNCTUATION
+			  	return punctuation
+				else
+					return exception
+			end
 		end
+		return eos
 	end
 
 	def tokens
-		@input.seek 0
-		consume
-		
+		@input.reset		
 		tokens = []
 		begin
 			t = nextToken
@@ -46,129 +66,72 @@ class Scanner
 	end
 
 private
-	def consume
-		@char = @input.getc
-	end
-	
 	def eos
 		Token::Eos.new
 	end
 
 	def space
-		consume while isSpace?
+		@input.scan SPACE
 		Token::Space.new
 	end
 
 	def newLine
-		consume while isNewLine?
+		@input.scan NEW_LINE 
 		Token::NewLine.new
 	end
 
+	def exception
+		Token::Exception.new @input.getch
+	end
+
+	def word
+		if @input.check URL
+			Token::Url.new @input.scan URL
+		elsif @input.check EMAIL
+			Token::Email.new @input.scan EMAIL
+		else
+			Token::Word.new @input.scan WORD
+		end
+	end
+
+	def number
+		Token::Number.new @input.scan NUMBER
+	end
+
+	def punctuation
+		Token::Punctuation.new @input.getch
+	end
+
 	def tag
-		buffer = StringIO.new
-		begin
-			buffer << @char
-			consume
-		end while isWord?
-		Token::Tag.new buffer.string.downcase
+		if @input.check TAG
+			Token::Tag.new @input.scan TAG
+		else
+			punctuation
+		end
 	end
 
 	def entity
-		buffer = StringIO.new
-		begin
-			buffer << @char
-			consume
-		end while isWord?
-		Token::Entity.new buffer.string.downcase
+		if @input.check ENTITY
+			Token::Entity.new @input.scan ENTITY
+		else
+			punctuation
+		end
 	end
 
 	def command
-		buffer = StringIO.new
-		begin
-			buffer << @char
-			consume
-		end while isWord?
-		Token::Command.new buffer.string.downcase
-	end
-
-	def chunk
-		email_state = 0
-		buffer = StringIO.new
-		begin
-			buffer << @char
-			last_char = @char
-			consume
-		end while isChunk? # read until space
-		if last_char !~ /[[:word:]\-]/ then # then backtrack to last /w character
-			@input.ungetc(@char)
-			while last_char !~ /[[:word:]\-]/ do 
-				@input.ungetc(last_char)
-				buffer.ungetc(last_char)
-				buffer.seek(buffer.tell - 1)
-				last_char = buffer.getc
-			end
-			consume
-		end
-		value = buffer.string[0..buffer.tell-1]
-		if value =~ EMAIL then 
-			Token::Email.new value
-		elsif value =~ URL then
-			Token::Url.new value
+		if @input.check COMMAND
+			Token::Command.new @input.scan COMMAND
 		else
-			Token::Chunk.new value
+			punctuation
 		end
 	end
 
 	def focus
-		char = @char
-		consume
-		if @char=="!"
-			consume
-			Token::Focus.new
+		if @input.check FOCUS
+			@input.scan FOCUS
+			Token::Focus.new 
 		else
-			Token::Exception.new "!"
+			punctuation
 		end
-	end
-
-	def exception
-		char = @char
-		consume
-		Token::Exception.new char
-	end
-
-	def isNil?
-		@char.nil?
-	end
-
-	def isSpace?
-		@char =~ /[ \t]/
-	end
-
-	def isNewLine?
-		@char =~ /[\n\r]/
-	end
-
-	def isTag?
-		@char == "#"
-	end 
-
-	def isEntity?
-		@char == "@"
-	end 
-
-	def isCommand?
-		@char == ":"
-	end
-
-	def isFocus?
-		@char == "!"
-	end
-
-	def isChunk?
-		@char =~ /\S/
-	end
-
-	def isWord?
-		@char =~ /[[:word:]\-]/
 	end
 end

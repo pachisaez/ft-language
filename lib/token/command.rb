@@ -8,11 +8,11 @@ module Token
 		end
 
 		def printed
-			value.colorize :light_blue
+			@lexeme.colorize :cyan
 		end
 
 		def process
-			puts "command #{value}".colorize :light_blue
+			puts "#{value}"
 		end
 
 	end

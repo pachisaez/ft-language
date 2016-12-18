@@ -6,7 +6,7 @@ module Token
 		end
 
 		def printed
-			value
+			@lexeme
 		end
 
 	end

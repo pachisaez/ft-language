@@ -7,8 +7,12 @@ module Token
 			super Token::Base::ENTITY, entity
 		end
 
+		def value
+			@lexeme[1..-1]
+		end
+
 		def printed
-			value.colorize :magenta
+			@lexeme.colorize :magenta
 		end
 
 		def process

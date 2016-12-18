@@ -1,5 +1,5 @@
 require './lib/parser'
-require './lib/scanner'
+require './lib/grammar'
 
 puts "FacileThings DSL"
 
@@ -10,7 +10,7 @@ puts input
 
 puts
 puts "Parse:".colorize :red
-scanner = Scanner.new input
+scanner = Grammar.new input
 parser = Parser.new scanner
 parser.parse
 
